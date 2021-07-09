@@ -2,7 +2,7 @@ from PyQt5 import QtGui, uic, QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-from segmentation import exG, hsv_segmentation, crop_to_contour
+from segmentation import exG, maxG, hsv_segmentation, crop_to_contour
 from pascal_voc_writer import Writer
 from imutils import paths
 import shutil
@@ -107,7 +107,7 @@ class SegmentationApp(QMainWindow):
             self.runpushButton.clicked.connect(lambda: self.segmentation(image=self.image))
 
             self.imageList.pop(0)
-            self.completedImages.append(self.imagefullPath)
+            #self.completedImages.append(self.imagefullPath)
             if len(self.imageList) < 1:
                 self.nextimagepushButton.setEnabled(False)
                 self.infolineEdit.setText('No images left')
@@ -135,9 +135,9 @@ class SegmentationApp(QMainWindow):
             self.infolineEdit.setText('[INFO] Using excess green index for segmentation.')
 
             extOnly = self.extOnlycheckBox.isChecked()
-            self.contours, self.maskedImage, self.mask, display = exG(image,
-                                                                      thresholdMin=self.thresholdDict['t1min'],
-                                                                      thresholdMax=self.thresholdDict['t1max'],
+            self.contours, self.maskedImage, self.mask, display = maxG(image,
+                                                                      #thresholdMin=self.thresholdDict['t1min'],
+                                                                      #thresholdMax=self.thresholdDict['t1max'],
                                                                       saturation=saturation,
                                                                       brightness=brightness,
                                                                       blur=blur,
@@ -344,11 +344,17 @@ class SegmentationApp(QMainWindow):
         self.thresholdDict['blur'] = self.blurspinBox.value()
         self.thresholdDict['extOnly'] = self.extOnlycheckBox.isChecked()
 
+        self.thresholdDict['imageDir'] = self.imageDirlineEdit.text()
+        self.thresholdDict['saveDir'] = self.saveDirlineEdit.text()
+        self.thresholdDict['class1'] = self.class1lineEdit.text()
+        self.thresholdDict['class2'] = self.class2lineEdit.text()
+        self.thresholdDict['class3'] = self.class3lineEdit.text()
+        self.thresholdDict['class4'] = self.class4lineEdit.text()
+
         with open('parameters.json', 'w') as log:
             json.dump(self.thresholdDict, log)
 
     def load_params(self):
-        print('here')
         try:
             with open('parameters.json') as log:
                 self.thresholdDict = json.load(log)
@@ -357,6 +363,13 @@ class SegmentationApp(QMainWindow):
                 self.brightdoubleSpinBox.setValue(self.thresholdDict['brightness'])
                 self.blurspinBox.setValue(self.thresholdDict['blur'])
                 self.extOnlycheckBox.setChecked(self.thresholdDict['extOnly'])
+                self.imageDirlineEdit.setText(self.thresholdDict['imageDir'])
+                self.saveDirlineEdit.setText(self.thresholdDict['saveDir'])
+
+                self.class1lineEdit.setText(self.thresholdDict['class1'])
+                self.class2lineEdit.setText(self.thresholdDict['class2'])
+                self.class3lineEdit.setText(self.thresholdDict['class3'])
+                self.class4lineEdit.setText(self.thresholdDict['class4'])
 
             try:
                 self.t1minSlider.setValue(self.thresholdDict['t1min'])
